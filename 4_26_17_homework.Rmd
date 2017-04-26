@@ -99,6 +99,7 @@ ggplot(data = mpg) +
   geom_point(mapping = aes(x = displ, y = hwy, color = cty, alpha = cty))
 
 #5. what does stroke in aes do? modifies the width of the border
+#this only works with some shapes - those that have borders
 ?geom_point
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy, stroke = 1))

@@ -124,8 +124,6 @@ ggplot(data = mpg) +
 ##this plot shows that there is fwd, rwd, and 4wd for the types of cars
 ```
 
-
-
 ####Color by car class
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy, color = class))
@@ -198,6 +196,7 @@ ggplot(data = mpg) +
 
 ```r
 #5. what does stroke in aes do? modifies the width of the border
+#this only works with some shapes - those that have borders
 ?geom_point
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy, stroke = 1))
@@ -266,17 +265,29 @@ ggplot(data = mpg) +
 
 ```r
 #5.
-#?facet_wrap
+#?facet_wrap - this goes until all the plots for the categories in this facet are plotted
 #nrow = number of rows, ncol = # columns - this controls the number of 
 #rows or columns in the facet plot
 #?facet_grid
-#facet_grid doesn't have this because it uses the variables instead
+#facet_grid doesn't have this because it uses the number of things in the category you are telling it to facet by. 
 
-#6. When using facet_grid() you should usually put the variable with more unique levels in
-#the columns. Do this because they are easier to compare than variables that have closer
-#values - the rows are better for this comparison.
+#6. Fits better with standard pages - can fit more columns than rows.
 ```
 
+### Notes from class
+`formats text like code but doesn't run it like code`
+specify figure width and height (dimensions in inches)
+`{r, fig.height = 6, fig.width = 6}`
+
+only color one of the class types
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = class == "compact"))
+
+set free scales in the facet wrap - this gets rid of the same scale for all plots, 
+this is good to look at individual plots but makes comparing between plots difficult
 
 
 
+plot.1 <- ggplot
+
+plot.1 + (add more features to the plot)

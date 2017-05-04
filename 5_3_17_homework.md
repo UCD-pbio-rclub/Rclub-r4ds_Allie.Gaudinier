@@ -95,7 +95,7 @@ ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
 #plot 5
 ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
   geom_point(mapping = aes(color = drv)) + 
-  geom_smooth(mapping = aes(group = drv), se = FALSE, show.legend = TRUE)
+  geom_smooth(mapping = aes(group = drv, linetype = drv), se = FALSE, show.legend = TRUE)
 ```
 
 ![](5_3_17_homework_files/figure-html/unnamed-chunk-1-9.png)<!-- -->
@@ -112,7 +112,7 @@ ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
 
 
 ```r
-#1. #?stat_summary
+#1. #?stat_summary - works with geom_pointrange
 #This produces a boxplot type plot with distributions that can be marked
 ggplot(data = mpg, aes(drv, cyl)) + 
   stat_summary()
@@ -199,8 +199,8 @@ ggplot(data = mpg, mapping = aes(x = cty, y = hwy, color = class)) +
 ```
 
 ```r
-ggplot(data = mpg, mapping = aes(x = class, color = drv)) + 
-  geom_bar()
+ggplot(data = mpg, mapping = aes(x = class, y = displ)) + 
+  geom_boxplot()
 ```
 
 ![](5_3_17_homework_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
@@ -213,7 +213,7 @@ ggplot(data = mpg, mapping = aes(x = class, color = drv)) +
 ```r
 ggplot(data = mpg, mapping = aes(x = class, fill = drv)) + 
   geom_bar() +
-  coord_flip()
+  coord_polar()
 ```
 
 ![](5_3_17_homework_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
@@ -224,12 +224,18 @@ ggplot(data = mpg, mapping = aes(x = class, fill = drv)) +
 Change axis labels and legend titles
 
 3. What’s the difference between coord_quickmap() and coord_map()?
-?coord_quickmap() -  a quick approximation that does preserve straight lines. It works best for smaller areas closer to the equator
-?coord_map() - projects a portion of the earth, which is approximately spherical, onto a flat 2D plane using any projection
+?coord_quickmap() -  a quick approximation that does preserve straight lines. It works 
+best for smaller areas closer to the equator
+?coord_map() - projects a portion of the earth, which is approximately spherical, onto 
+a flat 2D plane using any projection
 
-4. What does the plot below tell you about the relationship between city and highway mpg? Why is coord_fixed() important? What does geom_abline() do?'
-?geom_abline() - These paired geoms and stats add straight lines to a plot, either horizontal, vertical or specified by slope and intercept
-?coord_fixed() - A fixed scale coordinate system forces a specified ratio between the physical representation of data units on the axes. The ratio represents the number of units on the y-axis equivalent to one unit on the x-axis.
+4. What does the plot below tell you about the relationship between city and highway mpg? 
+Why is coord_fixed() important? What does geom_abline() do?'
+?geom_abline() - These paired geoms and stats add straight lines to a plot, either horizontal, 
+vertical or specified by slope and intercept
+?coord_fixed() - A fixed scale coordinate system forces a specified ratio between the 
+physical representation of data units on the axes. The ratio represents the number of units 
+on the y-axis equivalent to one unit on the x-axis.
 ```
 
 ```r
@@ -252,8 +258,9 @@ library(tidyverse)
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy))
 
-filter(mpg, cyl = 8)
+filter(mpg, cyl == 8)
 filter(diamonds, carat > 3)
+
 
 3. Alt + shift + k opens references for keyboard shortcuts
 ```
@@ -333,3 +340,11 @@ ggplot (data = Roots1, mapping = aes( x = NO3_Level, y = logPR, fill = Genotype)
 ```r
   #geom_count(position=position_jitterdodge(dodge.width=0.9))
 ```
+  
+  ```
+  make plots as object and then arrange them next to eachother
+  use grid.arrage to combine two plots side by side - can specify width of both plots
+  can use cow plot to plot things side by side too
+  
+  
+  ```

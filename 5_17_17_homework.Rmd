@@ -1,0 +1,158 @@
+---
+title: "5_17_17_homework"
+author: "Allie Gaudinier"
+date: "5/16/2017"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+
+```{r}
+library(nycflights13)
+library(tidyverse)
+
+delays <- flights %>% 
+  group_by(dest) %>% 
+  summarise(
+    count = n(),
+    dist = mean(distance, na.rm = TRUE),
+    delay = mean(arr_delay, na.rm = TRUE)
+  ) %>% 
+  filter(count > 20, dest != "HNL")
+delays
+```
+
+##Exercises 5.6.7
+
+
+1. Brainstorm at least 5 different ways to assess the typical delay characteristics of a group of flights. Consider the following scenarios:
+ A flight is 15 minutes early 50% of the time, and 15 minutes late 50% of the time.
+```{r}
+not_cancelled <- flights %>% 
+  filter(!is.na(dep_delay), !is.na(arr_delay))
+
+not_cancelled %>%
+  group_by(flight, arr_delay) %>%
+  summarise((mean(arr_delay == 15)))
+```
+ 
+ A flight is always 10 minutes late.
+```{r}
+ filter(not_cancelled, arr_delay == 10)
+```
+
+ A flight is 30 minutes early 50% of the time, and 30 minutes late 50% of the time.
+```{r}
+not_cancelled %>%
+  group_by(flight, arr_delay) %>%
+  summarise((mean(arr_delay == 30)))
+
+```
+ 99% of the time a flight is on time. 1% of the time it’s 2 hours late.
+```{r}
+not_cancelled %>%
+  group_by(origin, carrier, flight) %>%
+  summarise(quantile(arr_delay > 120, 0.99))
+```
+ 
+Which is more important: arrival delay or departure delay?
+Arrival delay - can make up time in the air. Look at depature delay, arrival delay - not always equal
+
+2. Come up with another approach that will give you the same output as 
+not_cancelled %>% count(dest)  
+
+
+not_cancelled %>%
+group_byflight ) %>%
+      summarise(dest = sum(dest))
+
+not_cancelled %>% count(tailnum, wt = distance) (without using count()).
+
+3. Our definition of cancelled flights (is.na(dep_delay) | is.na(arr_delay) ) is slightly suboptimal. Why? Which is the most important column?
+What happens if the plane  did not have a departure delay or an arrival delay (both equal zero) - I don't think it will count as a flight. The best way to show if the flight existed is airtime
+
+4. Look at the number of cancelled flights per day. Is there a pattern? Is the proportion of cancelled flights related to the average delay?
+
+```{r}
+cancelled <- flights %>% 
+  filter(is.na(dep_delay), is.na(arr_delay))
+
+library(ggplot2)
+cancelled %>%
+  group_by(day) %>%
+  summarise(n = n())
+ 
+ggplot(data = not_cancelled, mapping = aes(x = flight, y = dep_delay)) + 
+    geom_point(alpha = 1/10)
+```
+
+5. Which carrier has the worst delays? Challenge: can you disentangle the effects of bad airports vs. bad carriers? Why/why not? (Hint: think about flights %>% group_by(carrier, dest) %>% summarise(n()))
+
+```{r}
+not_cancelled %>%
+  group_by(carrier) %>%
+  arrange(desc(dep_delay))
+```
+
+
+6. What does the sort argument to count() do. When might you use it?
+?count()
+count(x, ..., wt = NULL, sort = FALSE) 
+wt - If omitted, will count the number of rows. If specified, will perform a "weighted" tally by summing the (non-missing) values of variable wt
+
+
+##5.7.1 Exercises
+
+1. Refer back to the lists of useful mutate and filtering functions. Describe how each operation changes when you combine it with grouping.
+These function within the groups
+
+2. Which plane (tailnum) has the worst on-time record?
+```{r}
+not_cancelled %>%
+  group_by(tailnum) %>%
+  arrange(desc(arr_delay))
+```
+
+3. What time of day should you fly if you want to avoid delays as much as possible? - May 7th
+```{r}
+not_cancelled %>%
+  group_by(day) %>%
+  arrange((arr_delay))
+```
+
+4. For each destination, compute the total minutes of delay. For each, flight, compute the proportion of the total delay for its destination.
+```{r}
+#not_cancelled %>%
+#  group_by(dest) %>%
+#  summarize(arr_delay, 
+#    n = n())
+
+not_cancelled %>%
+  group_by(dest) %>%
+  count(arr_delay)
+```
+
+
+5. Delays are typically temporally correlated: even once the problem that caused the initial delay has been resolved, later flights are delayed to allow earlier flights to leave. Using lag() explore how the delay of a flight is related to the delay of the immediately preceding flight.
+
+6. Look at each destination. Can you find flights that are suspiciously fast? (i.e. flights that represent a potential data entry error). Compute the air time a flight relative to the shortest flight to that destination. Which flights were most delayed in the air?
+
+```{r}
+flights %>%
+  transmute(origin, dest, distance, air_time, flight) %>%
+  group_by(origin, dest, distance, air_time) %>%
+  arrange(air_time)
+```
+
+
+7. Find all destinations that are flown by at least two carriers. Use that information to rank the carriers.
+flights %>%
+  group_by(dest, carrier) %>%
+  summarize(carrier >= 2)
+
+
+8. For each plane, count the number of flights before the first delay of greater than 1 hour.
+not_cancelled %>%
+  group_by(flight)
+  summarize()

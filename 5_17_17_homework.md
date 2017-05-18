@@ -530,3 +530,7 @@ not_cancelled %>%
   group_by(flight)
   summarize()
   Look at Michelle's answer for this
+  
+  
+ctrl + shift + m = %>%
+

@@ -67,27 +67,26 @@ not_cancelled <- flights %>%
   filter(!is.na(dep_delay), !is.na(arr_delay))
 
 not_cancelled %>%
-  group_by(flight, arr_delay) %>%
-  summarise((mean(arr_delay == 15)))
+  group_by(flight) %>%
+  summarise(early = mean(arr_delay <= -15), late = mean(arr_delay >= 15)) %>%
+  filter(early ==0.5 , late == 0.5)
 ```
 
 ```
-## Source: local data frame [149,961 x 3]
-## Groups: flight [?]
-## 
-##    flight arr_delay `(mean(arr_delay == 15))`
-##     <int>     <dbl>                     <dbl>
-## 1       1       -69                         0
-## 2       1       -61                         0
-## 3       1       -60                         0
-## 4       1       -59                         0
-## 5       1       -58                         0
-## 6       1       -57                         0
-## 7       1       -53                         0
-## 8       1       -52                         0
-## 9       1       -50                         0
-## 10      1       -49                         0
-## # ... with 149,951 more rows
+## # A tibble: 21 × 3
+##    flight early  late
+##     <int> <dbl> <dbl>
+## 1     107   0.5   0.5
+## 2    2072   0.5   0.5
+## 3    2366   0.5   0.5
+## 4    2500   0.5   0.5
+## 5    2552   0.5   0.5
+## 6    3495   0.5   0.5
+## 7    3505   0.5   0.5
+## 8    3518   0.5   0.5
+## 9    3544   0.5   0.5
+## 10   3651   0.5   0.5
+## # ... with 11 more rows
 ```
  
  A flight is always 10 minutes late.
@@ -120,27 +119,18 @@ not_cancelled %>%
 
 ```r
 not_cancelled %>%
-  group_by(flight, arr_delay) %>%
-  summarise((mean(arr_delay == 30)))
+  group_by(flight) %>%
+  summarise(early = mean(arr_delay <= -30), late = mean(arr_delay >= 30)) %>%
+  filter(early ==0.5 , late == 0.5)
 ```
 
 ```
-## Source: local data frame [149,961 x 3]
-## Groups: flight [?]
-## 
-##    flight arr_delay `(mean(arr_delay == 30))`
-##     <int>     <dbl>                     <dbl>
-## 1       1       -69                         0
-## 2       1       -61                         0
-## 3       1       -60                         0
-## 4       1       -59                         0
-## 5       1       -58                         0
-## 6       1       -57                         0
-## 7       1       -53                         0
-## 8       1       -52                         0
-## 9       1       -50                         0
-## 10      1       -49                         0
-## # ... with 149,951 more rows
+## # A tibble: 3 × 3
+##   flight early  late
+##    <int> <dbl> <dbl>
+## 1   3651   0.5   0.5
+## 2   3916   0.5   0.5
+## 3   3951   0.5   0.5
 ```
  99% of the time a flight is on time. 1% of the time it’s 2 hours late.
 
@@ -173,17 +163,102 @@ Which is more important: arrival delay or departure delay?
 Arrival delay - can make up time in the air. Look at depature delay, arrival delay - not always equal
 
 2. Come up with another approach that will give you the same output as 
-not_cancelled %>% count(dest)  
 
+  
 
+```r
+not_cancelled %>% count(dest)
+```
+
+```
+## # A tibble: 104 × 2
+##     dest     n
+##    <chr> <int>
+## 1    ABQ   254
+## 2    ACK   264
+## 3    ALB   418
+## 4    ANC     8
+## 5    ATL 16837
+## 6    AUS  2411
+## 7    AVL   261
+## 8    BDL   412
+## 9    BGR   358
+## 10   BHM   269
+## # ... with 94 more rows
+```
+
+```r
+##same as above
 not_cancelled %>%
-group_byflight ) %>%
-      summarise(dest = sum(dest))
+group_by(dest) %>%
+      summarise(flights = n())
+```
 
-not_cancelled %>% count(tailnum, wt = distance) (without using count()).
+```
+## # A tibble: 104 × 2
+##     dest flights
+##    <chr>   <int>
+## 1    ABQ     254
+## 2    ACK     264
+## 3    ALB     418
+## 4    ANC       8
+## 5    ATL   16837
+## 6    AUS    2411
+## 7    AVL     261
+## 8    BDL     412
+## 9    BGR     358
+## 10   BHM     269
+## # ... with 94 more rows
+```
+
+
+```r
+not_cancelled %>% count(tailnum, wt = distance)
+```
+
+```
+## # A tibble: 4,037 × 2
+##    tailnum      n
+##      <chr>  <dbl>
+## 1   D942DN   3418
+## 2   N0EGMQ 239143
+## 3   N10156 109664
+## 4   N102UW  25722
+## 5   N103US  24619
+## 6   N104UW  24616
+## 7   N10575 139903
+## 8   N105UW  23618
+## 9   N107US  21677
+## 10  N108UW  32070
+## # ... with 4,027 more rows
+```
+
+```r
+##same as above
+not_cancelled %>%
+  group_by(tailnum) %>%
+  summarise(flights = sum(distance))
+```
+
+```
+## # A tibble: 4,037 × 2
+##    tailnum flights
+##      <chr>   <dbl>
+## 1   D942DN    3418
+## 2   N0EGMQ  239143
+## 3   N10156  109664
+## 4   N102UW   25722
+## 5   N103US   24619
+## 6   N104UW   24616
+## 7   N10575  139903
+## 8   N105UW   23618
+## 9   N107US   21677
+## 10  N108UW   32070
+## # ... with 4,027 more rows
+```
 
 3. Our definition of cancelled flights (is.na(dep_delay) | is.na(arr_delay) ) is slightly suboptimal. Why? Which is the most important column?
-What happens if the plane  did not have a departure delay or an arrival delay (both equal zero) - I don't think it will count as a flight. The best way to show if the flight existed is airtime
+Using two variables is a little sloppy - The best way to show if the flight existed is air_time
 
 4. Look at the number of cancelled flights per day. Is there a pattern? Is the proportion of cancelled flights related to the average delay?
 
@@ -195,32 +270,30 @@ cancelled <- flights %>%
 library(ggplot2)
 cancelled %>%
   group_by(day) %>%
-  summarise(n = n())
+  summarise(avg_delay = mean(arr_delay, na.rm = T))
 ```
 
 ```
 ## # A tibble: 31 × 2
-##      day     n
-##    <int> <int>
-## 1      1   246
-## 2      2   250
-## 3      3   109
-## 4      4    82
-## 5      5   226
-## 6      6   296
-## 7      7   318
-## 8      8   921
-## 9      9   593
-## 10    10   535
+##      day avg_delay
+##    <int>     <dbl>
+## 1      1       NaN
+## 2      2       NaN
+## 3      3       NaN
+## 4      4       NaN
+## 5      5       NaN
+## 6      6       NaN
+## 7      7       NaN
+## 8      8       NaN
+## 9      9       NaN
+## 10    10       NaN
 ## # ... with 21 more rows
 ```
 
 ```r
-ggplot(data = not_cancelled, mapping = aes(x = flight, y = dep_delay)) + 
-    geom_point(alpha = 1/10)
+#ggplot(, mapping = aes(x = flight, y = avg_delay)) + 
+#    geom_point(alpha = 1/10)
 ```
-
-![](5_17_17_homework_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
 5. Which carrier has the worst delays? Challenge: can you disentangle the effects of bad airports vs. bad carriers? Why/why not? (Hint: think about flights %>% group_by(carrier, dest) %>% summarise(n()))
 
@@ -228,37 +301,37 @@ ggplot(data = not_cancelled, mapping = aes(x = flight, y = dep_delay)) +
 ```r
 not_cancelled %>%
   group_by(carrier) %>%
-  arrange(desc(dep_delay))
+  summarise(mean_arr_delay = mean(arr_delay, na.rm = T)) %>%
+  arrange(desc(mean_arr_delay))
 ```
 
 ```
-## Source: local data frame [327,346 x 19]
-## Groups: carrier [16]
-## 
-##     year month   day dep_time sched_dep_time dep_delay arr_time
-##    <int> <int> <int>    <int>          <int>     <dbl>    <int>
-## 1   2013     1     9      641            900      1301     1242
-## 2   2013     6    15     1432           1935      1137     1607
-## 3   2013     1    10     1121           1635      1126     1239
-## 4   2013     9    20     1139           1845      1014     1457
-## 5   2013     7    22      845           1600      1005     1044
-## 6   2013     4    10     1100           1900       960     1342
-## 7   2013     3    17     2321            810       911      135
-## 8   2013     6    27      959           1900       899     1236
-## 9   2013     7    22     2257            759       898      121
-## 10  2013    12     5      756           1700       896     1058
-## # ... with 327,336 more rows, and 12 more variables: sched_arr_time <int>,
-## #   arr_delay <dbl>, carrier <chr>, flight <int>, tailnum <chr>,
-## #   origin <chr>, dest <chr>, air_time <dbl>, distance <dbl>, hour <dbl>,
-## #   minute <dbl>, time_hour <dttm>
+## # A tibble: 16 × 2
+##    carrier mean_arr_delay
+##      <chr>          <dbl>
+## 1       F9     21.9207048
+## 2       FL     20.1159055
+## 3       EV     15.7964311
+## 4       YV     15.5569853
+## 5       OO     11.9310345
+## 6       MQ     10.7747334
+## 7       WN      9.6491199
+## 8       B6      9.4579733
+## 9       9E      7.3796692
+## 10      UA      3.5580111
+## 11      US      2.1295951
+## 12      VX      1.7644644
+## 13      DL      1.6443409
+## 14      AA      0.3642909
+## 15      HA     -6.9152047
+## 16      AS     -9.9308886
 ```
 
 
 6. What does the sort argument to count() do. When might you use it?
 ?count()
 count(x, ..., wt = NULL, sort = FALSE) 
-wt - If omitted, will count the number of rows. If specified, will perform a "weighted" tally by summing the (non-missing) values of variable wt
-
+Sorts the results ofthe count from highest to lowest
 
 ##5.7.1 Exercises
 
@@ -270,133 +343,190 @@ These function within the groups
 ```r
 not_cancelled %>%
   group_by(tailnum) %>%
-  arrange(desc(arr_delay))
+  summarise(avg_arr_delay = mean(arr_delay), na.rm = T) %>%
+  arrange(desc(avg_arr_delay))
 ```
 
 ```
-## Source: local data frame [327,346 x 19]
-## Groups: tailnum [4,037]
-## 
-##     year month   day dep_time sched_dep_time dep_delay arr_time
-##    <int> <int> <int>    <int>          <int>     <dbl>    <int>
-## 1   2013     1     9      641            900      1301     1242
-## 2   2013     6    15     1432           1935      1137     1607
-## 3   2013     1    10     1121           1635      1126     1239
-## 4   2013     9    20     1139           1845      1014     1457
-## 5   2013     7    22      845           1600      1005     1044
-## 6   2013     4    10     1100           1900       960     1342
-## 7   2013     3    17     2321            810       911      135
-## 8   2013     7    22     2257            759       898      121
-## 9   2013    12     5      756           1700       896     1058
-## 10  2013     5     3     1133           2055       878     1250
-## # ... with 327,336 more rows, and 12 more variables: sched_arr_time <int>,
-## #   arr_delay <dbl>, carrier <chr>, flight <int>, tailnum <chr>,
-## #   origin <chr>, dest <chr>, air_time <dbl>, distance <dbl>, hour <dbl>,
-## #   minute <dbl>, time_hour <dttm>
+## # A tibble: 4,037 × 3
+##    tailnum avg_arr_delay na.rm
+##      <chr>         <dbl> <lgl>
+## 1   N844MH      320.0000  TRUE
+## 2   N911DA      294.0000  TRUE
+## 3   N922EV      276.0000  TRUE
+## 4   N587NW      264.0000  TRUE
+## 5   N851NW      219.0000  TRUE
+## 6   N928DN      201.0000  TRUE
+## 7   N7715E      188.0000  TRUE
+## 8   N654UA      185.0000  TRUE
+## 9   N665MQ      174.6667  TRUE
+## 10  N427SW      157.0000  TRUE
+## # ... with 4,027 more rows
 ```
 
 3. What time of day should you fly if you want to avoid delays as much as possible? - May 7th
 
 ```r
 not_cancelled %>%
-  group_by(day) %>%
-  arrange((arr_delay))
+  group_by(hour) %>%
+  summarise(avg_arr_delay = mean(arr_delay), na.rm = T) %>%
+  arrange((avg_arr_delay))
 ```
 
 ```
-## Source: local data frame [327,346 x 19]
-## Groups: day [31]
-## 
-##     year month   day dep_time sched_dep_time dep_delay arr_time
-##    <int> <int> <int>    <int>          <int>     <dbl>    <int>
-## 1   2013     5     7     1715           1729       -14     1944
-## 2   2013     5    20      719            735       -16      951
-## 3   2013     5     2     1947           1949        -2     2209
-## 4   2013     5     6     1826           1830        -4     2045
-## 5   2013     5     4     1816           1820        -4     2017
-## 6   2013     5     2     1926           1929        -3     2157
-## 7   2013     5     6     1753           1755        -2     2004
-## 8   2013     5     7     2054           2055        -1     2317
-## 9   2013     5    13      657            700        -3      908
-## 10  2013     1     4     1026           1030        -4     1305
-## # ... with 327,336 more rows, and 12 more variables: sched_arr_time <int>,
-## #   arr_delay <dbl>, carrier <chr>, flight <int>, tailnum <chr>,
-## #   origin <chr>, dest <chr>, air_time <dbl>, distance <dbl>, hour <dbl>,
-## #   minute <dbl>, time_hour <dttm>
+## # A tibble: 19 × 3
+##     hour avg_arr_delay na.rm
+##    <dbl>         <dbl> <lgl>
+## 1      7    -5.3044716  TRUE
+## 2      5    -4.7969072  TRUE
+## 3      6    -3.3844854  TRUE
+## 4      9    -1.4514074  TRUE
+## 5      8    -1.1132266  TRUE
+## 6     10     0.9539401  TRUE
+## 7     11     1.4819300  TRUE
+## 8     12     3.4890104  TRUE
+## 9     13     6.5447397  TRUE
+## 10    14     9.1976501  TRUE
+## 11    23    11.7552783  TRUE
+## 12    15    12.3241920  TRUE
+## 13    16    12.5976412  TRUE
+## 14    18    14.7887244  TRUE
+## 15    22    15.9671618  TRUE
+## 16    17    16.0402670  TRUE
+## 17    19    16.6558736  TRUE
+## 18    20    16.6761098  TRUE
+## 19    21    18.3869371  TRUE
 ```
 
 4. For each destination, compute the total minutes of delay. For each, flight, compute the proportion of the total delay for its destination.
 
 ```r
-#not_cancelled %>%
-#  group_by(dest) %>%
-#  summarize(arr_delay, 
-#    n = n())
-
 not_cancelled %>%
   group_by(dest) %>%
-  count(arr_delay)
+  summarize(total = sum(arr_delay))
 ```
 
 ```
-## Source: local data frame [19,339 x 3]
-## Groups: dest [?]
-## 
-##     dest arr_delay     n
-##    <chr>     <dbl> <int>
-## 1    ABQ       -61     1
-## 2    ABQ       -58     1
-## 3    ABQ       -56     1
-## 4    ABQ       -55     2
-## 5    ABQ       -52     1
-## 6    ABQ       -51     1
-## 7    ABQ       -49     1
-## 8    ABQ       -45     2
-## 9    ABQ       -44     1
-## 10   ABQ       -43     3
-## # ... with 19,329 more rows
+## # A tibble: 104 × 2
+##     dest  total
+##    <chr>  <dbl>
+## 1    ABQ   1113
+## 2    ACK   1281
+## 3    ALB   6018
+## 4    ANC    -20
+## 5    ATL 190260
+## 6    AUS  14514
+## 7    AVL   2089
+## 8    BDL   2904
+## 9    BGR   2874
+## 10   BHM   4540
+## # ... with 94 more rows
+```
+
+```r
+##look at stacey's code for the second answer
 ```
 
 
 5. Delays are typically temporally correlated: even once the problem that caused the initial delay has been resolved, later flights are delayed to allow earlier flights to leave. Using lag() explore how the delay of a flight is related to the delay of the immediately preceding flight.
 
+```r
+not_cancelled %>%
+  group_by(origin, year, month, day) %>%
+  mutate(prec_flight_delay = lag(dep_delay))
+```
+
+```
+## Source: local data frame [327,346 x 20]
+## Groups: origin, year, month, day [1,095]
+## 
+##     year month   day dep_time sched_dep_time dep_delay arr_time
+##    <int> <int> <int>    <int>          <int>     <dbl>    <int>
+## 1   2013     1     1      517            515         2      830
+## 2   2013     1     1      533            529         4      850
+## 3   2013     1     1      542            540         2      923
+## 4   2013     1     1      544            545        -1     1004
+## 5   2013     1     1      554            600        -6      812
+## 6   2013     1     1      554            558        -4      740
+## 7   2013     1     1      555            600        -5      913
+## 8   2013     1     1      557            600        -3      709
+## 9   2013     1     1      557            600        -3      838
+## 10  2013     1     1      558            600        -2      753
+## # ... with 327,336 more rows, and 13 more variables: sched_arr_time <int>,
+## #   arr_delay <dbl>, carrier <chr>, flight <int>, tailnum <chr>,
+## #   origin <chr>, dest <chr>, air_time <dbl>, distance <dbl>, hour <dbl>,
+## #   minute <dbl>, time_hour <dttm>, prec_flight_delay <dbl>
+```
+
+```r
+## look at min-yaos code
+```
+
+
+
 6. Look at each destination. Can you find flights that are suspiciously fast? (i.e. flights that represent a potential data entry error). Compute the air time a flight relative to the shortest flight to that destination. Which flights were most delayed in the air?
 
 
 ```r
-flights %>%
-  transmute(origin, dest, distance, air_time, flight) %>%
-  group_by(origin, dest, distance, air_time) %>%
+#look at staceys answer
+not_cancelled %>%
+  group_by(dest) %>%
+  mutate(fastest = min(air_time)) %>%
+  ungroup() %>%
   arrange(air_time)
 ```
 
 ```
-## Source: local data frame [336,776 x 5]
-## Groups: origin, dest, distance, air_time [11,904]
-## 
-##    origin  dest distance air_time flight
-##     <chr> <chr>    <dbl>    <dbl>  <int>
-## 1     EWR   BDL      116       20   4368
-## 2     EWR   BDL      116       20   4631
-## 3     EWR   BDL      116       21   4276
-## 4     EWR   PHL       80       21   4619
-## 5     EWR   BDL      116       21   4368
-## 6     EWR   PHL       80       21   4619
-## 7     LGA   BOS      184       21   2132
-## 8     JFK   PHL       94       21   3650
-## 9     EWR   BDL      116       21   4118
-## 10    EWR   BDL      116       21   4276
-## # ... with 336,766 more rows
+## # A tibble: 327,346 × 20
+##     year month   day dep_time sched_dep_time dep_delay arr_time
+##    <int> <int> <int>    <int>          <int>     <dbl>    <int>
+## 1   2013     1    16     1355           1315        40     1442
+## 2   2013     4    13      537            527        10      622
+## 3   2013    12     6      922            851        31     1021
+## 4   2013     2     3     2153           2129        24     2247
+## 5   2013     2     5     1303           1315       -12     1342
+## 6   2013     2    12     2123           2130        -7     2211
+## 7   2013     3     2     1450           1500       -10     1547
+## 8   2013     3     8     2026           1935        51     2131
+## 9   2013     3    18     1456           1329        87     1533
+## 10  2013     3    19     2226           2145        41     2305
+## # ... with 327,336 more rows, and 13 more variables: sched_arr_time <int>,
+## #   arr_delay <dbl>, carrier <chr>, flight <int>, tailnum <chr>,
+## #   origin <chr>, dest <chr>, air_time <dbl>, distance <dbl>, hour <dbl>,
+## #   minute <dbl>, time_hour <dttm>, fastest <dbl>
 ```
 
 
 7. Find all destinations that are flown by at least two carriers. Use that information to rank the carriers.
+
+```r
 flights %>%
-  group_by(dest, carrier) %>%
-  summarize(carrier >= 2)
+  group_by(dest) %>%
+  count(carrier) %>%
+  summarise(num_carrier = n ()) %>%
+  filter(num_carrier >= 2)
+```
+
+```
+## # A tibble: 76 × 2
+##     dest num_carrier
+##    <chr>       <int>
+## 1    ATL           7
+## 2    AUS           6
+## 3    AVL           2
+## 4    BDL           2
+## 5    BGR           2
+## 6    BNA           5
+## 7    BOS           7
+## 8    BQN           2
+## 9    BTV           3
+## 10   BUF           4
+## # ... with 66 more rows
+```
 
 
 8. For each plane, count the number of flights before the first delay of greater than 1 hour.
 not_cancelled %>%
   group_by(flight)
   summarize()
+  Look at Michelle's answer for this

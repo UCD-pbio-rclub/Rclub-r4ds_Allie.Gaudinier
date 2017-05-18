@@ -33,8 +33,9 @@ not_cancelled <- flights %>%
   filter(!is.na(dep_delay), !is.na(arr_delay))
 
 not_cancelled %>%
-  group_by(flight, arr_delay) %>%
-  summarise((mean(arr_delay == 15)))
+  group_by(flight) %>%
+  summarise(early = mean(arr_delay <= -15), late = mean(arr_delay >= 15)) %>%
+  filter(early ==0.5 , late == 0.5)
 ```
  
  A flight is always 10 minutes late.
@@ -45,8 +46,9 @@ not_cancelled %>%
  A flight is 30 minutes early 50% of the time, and 30 minutes late 50% of the time.
 ```{r}
 not_cancelled %>%
-  group_by(flight, arr_delay) %>%
-  summarise((mean(arr_delay == 30)))
+  group_by(flight) %>%
+  summarise(early = mean(arr_delay <= -30), late = mean(arr_delay >= 30)) %>%
+  filter(early ==0.5 , late == 0.5)
 
 ```
  99% of the time a flight is on time. 1% of the time it’s 2 hours late.
@@ -60,17 +62,28 @@ Which is more important: arrival delay or departure delay?
 Arrival delay - can make up time in the air. Look at depature delay, arrival delay - not always equal
 
 2. Come up with another approach that will give you the same output as 
-not_cancelled %>% count(dest)  
 
+  
+```{r}
+not_cancelled %>% count(dest)
 
+##same as above
 not_cancelled %>%
-group_byflight ) %>%
-      summarise(dest = sum(dest))
+group_by(dest) %>%
+      summarise(flights = n())
+```
 
-not_cancelled %>% count(tailnum, wt = distance) (without using count()).
+```{r}
+not_cancelled %>% count(tailnum, wt = distance)
+
+##same as above
+not_cancelled %>%
+  group_by(tailnum) %>%
+  summarise(flights = sum(distance))
+```
 
 3. Our definition of cancelled flights (is.na(dep_delay) | is.na(arr_delay) ) is slightly suboptimal. Why? Which is the most important column?
-What happens if the plane  did not have a departure delay or an arrival delay (both equal zero) - I don't think it will count as a flight. The best way to show if the flight existed is airtime
+Using two variables is a little sloppy - The best way to show if the flight existed is air_time
 
 4. Look at the number of cancelled flights per day. Is there a pattern? Is the proportion of cancelled flights related to the average delay?
 
@@ -81,10 +94,10 @@ cancelled <- flights %>%
 library(ggplot2)
 cancelled %>%
   group_by(day) %>%
-  summarise(n = n())
+  summarise(avg_delay = mean(arr_delay, na.rm = T))
  
-ggplot(data = not_cancelled, mapping = aes(x = flight, y = dep_delay)) + 
-    geom_point(alpha = 1/10)
+#ggplot(, mapping = aes(x = flight, y = avg_delay)) + 
+#    geom_point(alpha = 1/10)
 ```
 
 5. Which carrier has the worst delays? Challenge: can you disentangle the effects of bad airports vs. bad carriers? Why/why not? (Hint: think about flights %>% group_by(carrier, dest) %>% summarise(n()))
@@ -92,15 +105,15 @@ ggplot(data = not_cancelled, mapping = aes(x = flight, y = dep_delay)) +
 ```{r}
 not_cancelled %>%
   group_by(carrier) %>%
-  arrange(desc(dep_delay))
+  summarise(mean_arr_delay = mean(arr_delay, na.rm = T)) %>%
+  arrange(desc(mean_arr_delay))
 ```
 
 
 6. What does the sort argument to count() do. When might you use it?
 ?count()
 count(x, ..., wt = NULL, sort = FALSE) 
-wt - If omitted, will count the number of rows. If specified, will perform a "weighted" tally by summing the (non-missing) values of variable wt
-
+Sorts the results ofthe count from highest to lowest
 
 ##5.7.1 Exercises
 
@@ -111,48 +124,64 @@ These function within the groups
 ```{r}
 not_cancelled %>%
   group_by(tailnum) %>%
-  arrange(desc(arr_delay))
+  summarise(avg_arr_delay = mean(arr_delay), na.rm = T) %>%
+  arrange(desc(avg_arr_delay))
 ```
 
 3. What time of day should you fly if you want to avoid delays as much as possible? - May 7th
 ```{r}
 not_cancelled %>%
-  group_by(day) %>%
-  arrange((arr_delay))
+  group_by(hour) %>%
+  summarise(avg_arr_delay = mean(arr_delay), na.rm = T) %>%
+  arrange((avg_arr_delay))
+
 ```
 
 4. For each destination, compute the total minutes of delay. For each, flight, compute the proportion of the total delay for its destination.
 ```{r}
-#not_cancelled %>%
-#  group_by(dest) %>%
-#  summarize(arr_delay, 
-#    n = n())
-
 not_cancelled %>%
   group_by(dest) %>%
-  count(arr_delay)
+  summarize(total = sum(arr_delay))
+
+##look at stacey's code for the second answer
 ```
 
 
 5. Delays are typically temporally correlated: even once the problem that caused the initial delay has been resolved, later flights are delayed to allow earlier flights to leave. Using lag() explore how the delay of a flight is related to the delay of the immediately preceding flight.
+```{r}
+not_cancelled %>%
+  group_by(origin, year, month, day) %>%
+  mutate(prec_flight_delay = lag(dep_delay))
+
+## look at min-yaos code
+```
+
+
 
 6. Look at each destination. Can you find flights that are suspiciously fast? (i.e. flights that represent a potential data entry error). Compute the air time a flight relative to the shortest flight to that destination. Which flights were most delayed in the air?
 
 ```{r}
-flights %>%
-  transmute(origin, dest, distance, air_time, flight) %>%
-  group_by(origin, dest, distance, air_time) %>%
+#look at staceys answer
+not_cancelled %>%
+  group_by(dest) %>%
+  mutate(fastest = min(air_time)) %>%
+  ungroup() %>%
   arrange(air_time)
 ```
 
 
 7. Find all destinations that are flown by at least two carriers. Use that information to rank the carriers.
+```{r}
 flights %>%
-  group_by(dest, carrier) %>%
-  summarize(carrier >= 2)
+  group_by(dest) %>%
+  count(carrier) %>%
+  summarise(num_carrier = n ()) %>%
+  filter(num_carrier >= 2)
+```
 
 
 8. For each plane, count the number of flights before the first delay of greater than 1 hour.
 not_cancelled %>%
   group_by(flight)
   summarize()
+  Look at Michelle's answer for this

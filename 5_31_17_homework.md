@@ -7,7 +7,7 @@ Allie Gaudinier
 1. How can you tell if an object is a tibble? (Hint: try printing mtcars, which is a regular data frame). onlt the first 10 rows would print if it was a tibble.
 print(mtcars)
 
-2. Compare and contrast the following operations on a data.frame and equivalent tibble. What is different? Why might the default data frame behaviours cause you frustration? Depedning on how much data you ask for a dataframe will give you a vector (one column) or a df (mutliple columns)
+2. Compare and contrast the following operations on a data.frame and equivalent tibble. What is different? Why might the default data frame behaviours cause you frustration? Depending on how much data you ask for a dataframe will give you a vector (one column) or a df (mutliple columns)
 
 
 ```r
@@ -60,6 +60,15 @@ df[, c("abc", "xyz")]
 ## 1   1   a
 ```
 
+```r
+df[,1:2]
+```
+
+```
+##   abc xyz
+## 1   1   a
+```
+
 
 ```r
 df2 <- tibble(abc = 1, xyz = "a")
@@ -98,8 +107,13 @@ df2[, c("abc", "xyz")]
 
 
 3. If you have the name of a variable stored in an object, e.g. var <- "mpg", how can you extract the reference variable from a tibble?
-df[[var]]
 
+mpg[var]
+mpg[[var]]
+mpg[,var]
+get(var, mpg)
+select(mpg, matches(var))
+subset(mpg, select= var)
 
 
 4. Practice referring to non-syntactic names in the following data frame by:

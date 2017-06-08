@@ -62,21 +62,14 @@ read_fwf(fwf_sample, fwf_cols(name = 20, state = 10, ssn = 12))
 "x,y\n1,'a,b'"
 
 ```r
-read_csv("x,y\n1,'a,b'", col_names = F)
+read_csv("x,y\n1,'a,b'", quote = "'")
 ```
 
 ```
-## Warning: 1 parsing failure.
-## row col  expected    actual         file
-##   2  -- 2 columns 3 columns literal data
-```
-
-```
-## # A tibble: 2 × 2
-##      X1    X2
-##   <chr> <chr>
-## 1     x     y
-## 2     1    'a
+## # A tibble: 1 × 2
+##       x     y
+##   <int> <chr>
+## 1     1   a,b
 ```
 
 
@@ -91,13 +84,13 @@ read_csv("a,b,c\n1,2\n1,2,3,4")
 
 
 read_csv("a,b\n\"1")
-# 2 columns, 1 factor in row 2
+# extra backslash for the new row
 
 read_csv("a,b\n1,2\na,b")
-#row 2 is the same as the column names
+#1 and 2 are treated as characters
 
 read_csv("a;b\n1;3")
-#creates a 1x1 matrix
+#creates a 1x1 matrix, should use read_csv2
 ```
 
 ##11.3.5 Exercises
@@ -275,7 +268,7 @@ d6
 #install.packages("hms")
 library("hms")
 #t1 <- "1705"
-t1 <- parse_time("17:05")
+t1 <- parse_time("1705", "%H%M")
 t1
 ```
 
